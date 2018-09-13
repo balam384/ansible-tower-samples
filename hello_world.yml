@@ -2,6 +2,5 @@
   hosts: all
   tasks:
     - name: Hello Message
-      debug:
-        msg: "Hello World!"
+      copy: content="Hello World!" dest=/tmp/test123
 
