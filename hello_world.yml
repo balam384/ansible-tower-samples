@@ -1,6 +1,35 @@
-- name: Hello World Sample
+- name: upgrade packages and reboot (if necessary)
   hosts: all
-  tasks:
-    - name: Hello Message
-      copy: content="Hello World!" dest=/tmp/test123
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  max_fail_percentage: 0
 
+  tasks: # tasks are done in order
+
+    # do an "apt-get update", to ensure latest package lists
+    - name: apt-get update
+      apt:
+        update-cache: yes
+      changed_when: 0
+
+    # get a list of packages that have updates
+    - name: get list of pending upgrades
+      command: apt-get --simulate dist-upgrade
+      args:
+        warn: false # don't warn us about apt having its own plugin
+      register: apt_simulate
+      changed_when: 0
+
+    # pick out list of pending updates from command output
+    - name: parse apt-get output to get list of changed packages
+      set_fact:
+        # updates: '{{ apt_simulate.stdout_lines | select("match", "^Inst ") | list | splitpart(1, " ") | list | sort }}'
+        updates: '{{ apt_simulate.stdout_lines | select("match", "^Inst((?!security).)*$") | list |length }}'
+      changed_when: 0
+
+    # tell user about packages being updated
+    - name: show pending updates
+      debug:
+        var: updates
+      when: updates.0 is defined
