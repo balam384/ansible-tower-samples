@@ -1,5 +1,7 @@
 - name: upgrade packages and reboot (if necessary)
   hosts: all
+  become: yes
+  become_method: sudo
   any_errors_fatal: true
   max_fail_percentage: 0
 
