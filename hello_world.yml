@@ -24,8 +24,9 @@
     # pick out list of pending updates from command output
     - name: parse apt-get output to get list of changed packages
       set_fact:
-        # updates: '{{ apt_simulate.stdout_lines | select("match", "^Inst ") | list | splitpart(1, " ") | list | sort }}'
+        security_updates: '{{ apt_simulate.stdout_lines | select("match", "^Inst ") | list | length }}'
         updates: '{{ apt_simulate.stdout_lines | select("match", "^Inst((?!security).)*$") | list |length }}'
+        cacheable: true
       changed_when: 0
 
     # tell user about packages being updated
