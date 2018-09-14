@@ -6,9 +6,9 @@
   tasks: # tasks are done in order
 
     # do an "apt-get update", to ensure latest package lists
-    # - name: apt-get update
-    #   apt:
-    #     update-cache: yes
+    - name: apt-get update
+      apt:
+        update-cache: yes
 
     # get a list of packages that have updates
     - name: get list of pending upgrades
