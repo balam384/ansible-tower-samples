@@ -2,16 +2,13 @@
   hosts: all
   become: yes
   become_method: sudo
-  any_errors_fatal: true
-  max_fail_percentage: 0
 
   tasks: # tasks are done in order
 
     # do an "apt-get update", to ensure latest package lists
-    - name: apt-get update
-      apt:
-        update-cache: yes
-      changed_when: 0
+    # - name: apt-get update
+    #   apt:
+    #     update-cache: yes
 
     # get a list of packages that have updates
     - name: get list of pending upgrades
@@ -19,18 +16,20 @@
       args:
         warn: false # don't warn us about apt having its own plugin
       register: apt_simulate
-      changed_when: 0
 
     # pick out list of pending updates from command output
     - name: parse apt-get output to get list of changed packages
       set_fact:
-        security_updates: '{{ apt_simulate.stdout_lines | select("match", "^Inst ") | list | length }}'
+        security_updates: '{{ apt_simulate.stdout_lines | select("match", "^Inst.*security") | list | length }}'
         updates: '{{ apt_simulate.stdout_lines | select("match", "^Inst((?!security).)*$") | list |length }}'
         cacheable: true
-      changed_when: 0
 
     # tell user about packages being updated
     - name: show pending updates
       debug:
-        var: updates
+        var: updates,security_updates
       when: updates.0 is defined
+    - name: fail if security updates 
+      fail:
+        msg: "The system may not be provisioned according to the CMDB status."
+      when: security_updates != "0"
